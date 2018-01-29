@@ -18,11 +18,14 @@ function Remove-FslOldOstFile {
 
         #Write-Log
         #Get-FslVHD
-
+        #Remove-FslOST
 
     } #BEGIN
     PROCESS {
-        Get-FslVHD -Path $FolderPath
+
+        $vhdList = Get-FslVHD -Path $FolderPath
+        $vhdToProcess = $vhdList | Where-Object {$_.Attached -eq $false -and $_.FreeSpace -lt $FreeSpace}
+        $vhdToProcess | Remove-FslOST
 
     } #PROCESS
     END {

@@ -13,7 +13,7 @@ function Get-FslVHD {
 
         $vhdDetail = Get-ChildItem -Path (Join-Path $path *.vhd*) -Recurse | Get-VHD
 
-        $output = $vhdDetail | Select-Object -Property Path, VhdFormat, VhdType, FileSize, Size, Attached, @{n = 'FreeSpace(GB)'; e = {[math]::round((($_.Size - $_.FileSize) / [math]::pow( 1024, 3 )),2)}}
+        $output = $vhdDetail | Select-Object -Property Path, VhdFormat, VhdType, FileSize, Size, Attached, @{n = 'FreeSpace'; e = {[math]::round((($_.Size - $_.FileSize) / [math]::pow( 1024, 3 )),2)}}
 
         Write-Output $output
 
