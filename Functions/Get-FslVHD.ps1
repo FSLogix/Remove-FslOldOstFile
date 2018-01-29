@@ -40,5 +40,3 @@ function Get-FslVHD {
     END {
     } #END
 }#function
-
-Get-FslVHD -Path E:\JimM

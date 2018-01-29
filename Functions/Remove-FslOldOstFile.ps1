@@ -5,25 +5,28 @@ function Remove-FslOldOstFile {
             Position = 0,
             Mandatory = $true)]
         [String]$FolderPath,
+
         [Parameter(
             Position = 1,
-            Mandatory = $true)]
+            Mandatory = $true,
+            HelpMessage = 'The script will process VHDs with less free space than specified here')]
         [int]$FreeSpace,
+
         [Parameter(
             Position = 2)]
-        [String]$LogPath = (Join-Path $env:TEMP FSlogixRemoveOST.log)
+        [String]$LogPath = 'C:\Users\Jim\AppData\Local\Temp\FSlogixRemoveOST.log'
     )
     BEGIN {
         Set-StrictMode -Version Latest
 
         #Region helper functions
-        #Write-Log
-        #Get-FslVHD
-        #Remove-FslOST
+            #Write-Log
+            #Get-FslVHD
+            #Remove-FslOST
         #endregion
 
-        $PSDefaultParameterValues = @{"Write-Log :$Path" = "$LogPath"}
         Write-Log -StartNew
+        $PSDefaultParameterValues = @{"Write-Log:Path" = "$LogPath"}
     } #BEGIN
     PROCESS {
 
@@ -36,5 +39,6 @@ function Remove-FslOldOstFile {
         Write-Log 'Finished Remove-FslOldOstFile'
     } #PROCESS
     END {
+        Write-Log 'Script Finished'
     } #END
 }#function

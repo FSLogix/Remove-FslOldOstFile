@@ -2,6 +2,7 @@ function Remove-FslOST {
     [CmdletBinding()]
     param(
         [Parameter(
+            ValueFromPipeline = $true,
             Position = 0,
             Mandatory = $true)]
         [String[]]$VHDPath
