@@ -11,22 +11,29 @@ function Remove-FslOldOstFile {
         [int]$FreeSpace,
         [Parameter(
             Position = 2)]
-        [String]$LogPath = $env:TEMP
+        [String]$LogPath = (Join-Path $env:TEMP FSlogixRemoveOST.log)
     )
     BEGIN {
         Set-StrictMode -Version Latest
 
+        #Region helper functions
         #Write-Log
         #Get-FslVHD
         #Remove-FslOST
+        #endregion
 
+        $PSDefaultParameterValues = @{"Write-Log :$Path" = "$LogPath"}
+        Write-Log -StartNew
     } #BEGIN
     PROCESS {
 
-        $vhdList = Get-FslVHD -Path $FolderPath
+        Write-Verbose 'Starting Remove-FslOldOstFile'
+        Write-Log 'Starting Remove-FslOldOstFile'
+        $vhdList = Get-FslVHD -Path $FolderPath -Verbose:$VerbosePreference
         $vhdToProcess = $vhdList | Where-Object {$_.Attached -eq $false -and $_.FreeSpace -lt $FreeSpace}
-        $vhdToProcess | Remove-FslOST
-
+        $vhdToProcess | Remove-FslOST -Verbose:$VerbosePreference
+        Write-Verbose 'Finished Remove-FslOldOstFile'
+        Write-Log 'Finished Remove-FslOldOstFile'
     } #PROCESS
     END {
     } #END
