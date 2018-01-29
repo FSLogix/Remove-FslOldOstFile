@@ -8,12 +8,17 @@ function Remove-FslOldOstFile {
         [Parameter(
             Position = 1,
             Mandatory = $true)]
-        [int]$Number
+        [int]$FreeSpace,
+        [Parameter(
+            Position = 2)]
+        [String]$LogPath = $env:TEMP
     )
     BEGIN {
         Set-StrictMode -Version Latest
 
+        #Write-Log
         #Get-FslVHD
+
 
     } #BEGIN
     PROCESS {
