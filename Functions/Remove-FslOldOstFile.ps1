@@ -4,7 +4,7 @@ function Remove-FslOldOstFile {
         [Parameter(
             Position = 0,
             Mandatory = $true)]
-        [String]$Text,
+        [String]$FolderPath,
         [Parameter(
             Position = 1,
             Mandatory = $true)]
@@ -12,9 +12,12 @@ function Remove-FslOldOstFile {
     )
     BEGIN {
         Set-StrictMode -Version Latest
+
+        #Get-FslVHD
+
     } #BEGIN
     PROCESS {
-
+        Get-FslVHD -Path $FolderPath
 
     } #PROCESS
     END {
