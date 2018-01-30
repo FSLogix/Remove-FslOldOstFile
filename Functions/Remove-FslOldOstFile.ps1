@@ -34,7 +34,7 @@ function Remove-FslOldOstFile {
         Write-Log 'Starting Remove-FslOldOstFile'
         $vhdList = Get-FslVHD -Path $FolderPath -Verbose:$VerbosePreference
         $vhdToProcess = $vhdList | Where-Object {$_.Attached -eq $false -and $_.FreeSpace -lt $FreeSpace}
-        $vhdToProcess | Remove-FslOST -Verbose:$VerbosePreference
+        $vhdToProcess.path | Remove-FslOST -Verbose:$VerbosePreference
         Write-Verbose 'Finished Remove-FslOldOstFile'
         Write-Log 'Finished Remove-FslOldOstFile'
     } #PROCESS

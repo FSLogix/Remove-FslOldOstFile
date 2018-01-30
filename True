@@ -1,14 +1,8 @@
-2018-01-29 23:37:58 INFO:    Starting Logfile
-2018-01-29 23:38:03 INFO:    Starting Remove-FslOldOstFile
-2018-01-29 23:38:06 INFO:    Starting Get-FslVHD  helper function
-2018-01-29 23:38:07 INFO:    Retrieved 3 vhds from specified path
-2018-01-29 23:38:07 INFO:    Formated VHD details Correctly
-2018-01-29 23:38:07 INFO:    Stopping Get-FslVHD  helper function
-2018-01-29 23:38:12 INFO:    Starting Remove-FslOST helper function
-2018-01-29 23:38:12 INFO:    Processing 
-2018-01-29 23:38:12 INFO:    Getting ost files from vhd(x)
-2018-01-29 23:38:13 INFO:    Processing 
-2018-01-29 23:38:13 INFO:    Getting ost files from vhd(x)
-2018-01-29 23:38:13 INFO:    Processing 
-2018-01-29 23:38:13 INFO:    Getting ost files from vhd(x)
-2018-01-29 23:38:13 INFO:    Leaving Remove-FslOST helper function
+2018-01-30 07:39:29 INFO:    Starting Logfile
+2018-01-30 07:39:31 INFO:    Starting Remove-FslOldOstFile
+2018-01-30 07:39:31 INFO:    Starting Get-FslVHD  helper function
+2018-01-30 07:39:33 INFO:    Retrieved 3 vhds from specified path
+2018-01-30 07:39:33 INFO:    Formated VHD details Correctly
+2018-01-30 07:39:33 INFO:    Stopping Get-FslVHD  helper function
+2018-01-30 07:39:42 INFO:    Starting Remove-FslOST helper function
+2018-01-30 07:39:48 INFO:    Processing 
