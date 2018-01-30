@@ -10,58 +10,76 @@ function Remove-FslOST {
     BEGIN {
         Set-StrictMode -Version Latest
         Write-Log 'Starting Remove-FslOST helper function'
+        $totalFilesDeleted = 0
     } #BEGIN
     PROCESS {
         foreach ($vhd in $VHDPath) {
 
-            Write-Log "Processing $($vhd.name)"
+            Write-Log "Processing $vhd"
 
             try {
-                Write-Log "Mounting $($vhd.name)"
+                Write-Log "Mounting $vhd"
                 $mount = Mount-VHD $vhd -Passthru -ErrorAction Stop
-                Write-Log "Mounted $($vhd.name)"
+                Write-Log "Mounted $vhd"
             }
             catch {
                 #Write-Error $Error[0]
-                Write-Log -level Error "Failed to mount $($vhd.name)"
-                Write-Log -level Error "Stopping processing $($vhd.name)"
+                Write-Log -level Error "Failed to mount $vhd"
+                Write-Log -level Error "Stopping processing $vhd"
                 break
             }
 
             $driveLetter = $mount | Get-Disk | Get-Partition | Select-Object -ExpandProperty AccessPaths | Select-Object -first 1
 
             Write-Log  "Getting ost files from vhd(x)"
-            $ost = Get-ChildItem -Path (Join-Path $driveLetter *.ost) -Recurse
-            if ($ost.count -gt 0) {
-                Write-Log  "Found $($ost.count) ost files"
+            $ost = Get-ChildItem -Path (Join-Path $driveLetter *.ost)
+            if ($null -eq $ost) {
+                Write-log -level Warn "Did not find any ost files in $vhd"
+                $ostDelNum = 0
             }
             else {
-                Write-log -level Warn "Did not find any ost files in $($vhd.name)"
-            }
-
-            if ($ost.count -gt 1) {
-                $ostDelNum = $ost.count - 1
-                Write-Log "Deleting $ostDelNum ost files"
+                #So this is weird if only one file is there it doesn't have a count property!
                 try {
-                    $latestOst = $ost | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
-                    $ost | Where-Object {$_.Name -ne $latestOst.Name} | Remove-Item -Force -ErrorAction Stop
+                    $ost.count | Out-Null
+                    $count = $ost.count
                 }
                 catch {
-                    write-log -level Error "Failed to delete ost files in $($vhd.name)"
+                    $count = 1
+                }
+                Write-Log  "Found $count ost files"
+
+                if ($count -gt 1) {
+                    $ostDelNum = $ost.count - 1
+                    Write-Log "Deleting $ostDelNum ost files"
+                    try {
+                        $latestOst = $ost | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
+                        $ost | Where-Object {$_.Name -ne $latestOst.Name} | Remove-Item -Force -ErrorAction Stop
+                    }
+                    catch {
+                        write-log -level Error "Failed to delete ost files in $vhd"
+                    }
+                    Remove-Variable -Name ost -ErrorAction SilentlyContinue
+                }
+                else {
+                    Write-Log 'Only One ost file found. No action taken'
+                    $ostDelNum = 0
                 }
             }
             try {
-                Write-Log "Dismounting $($vhd.name)"
+                Write-Log "Dismounting $vhd"
                 Dismount-VHD $vhd -ErrorAction Stop
-                Write-Log "Dismounted $($vhd.name)"
+                Write-Log "Dismounted $vhd"
             }
             catch {
-                write-log -level Error "Failed to Dismount $($vhd.name) vhd will need to be manually dismounted"
+                write-log -level Error "Failed to Dismount $vhd vhd will need to be manually dismounted"
             }
+            $totalFilesDeleted = $totalFilesDeleted + $ostDelNum
+
         }
 
     } #PROCESS
     END {
+        Write-Output $totalFilesDeleted
         Write-log "Leaving Remove-FslOST helper function"
     } #END
 }#function
