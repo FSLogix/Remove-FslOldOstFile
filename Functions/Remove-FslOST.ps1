@@ -32,7 +32,7 @@ function Remove-FslOST {
             $driveLetter = $mount | Get-Disk | Get-Partition | Select-Object -ExpandProperty AccessPaths | Select-Object -first 1
 
             Write-Log  "Getting ost files from vhd(x)"
-            $ost = Get-ChildItem -Path (Join-Path $driveLetter *.ost)
+            $ost = Get-ChildItem -Path (Join-Path $driveLetter *.ost) -Recurse
             if ($null -eq $ost) {
                 Write-log -level Warn "Did not find any ost files in $vhd"
                 $ostDelNum = 0
