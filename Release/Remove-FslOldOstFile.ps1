@@ -20,6 +20,7 @@ function Remove-FslOldOstFile {
         Set-StrictMode -Version Latest
 
         #Region helper functions
+
             #Write-Log
             function Write-Log {
                 [CmdletBinding(DefaultParametersetName = "LOG")]
