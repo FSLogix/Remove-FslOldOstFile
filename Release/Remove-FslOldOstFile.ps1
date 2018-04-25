@@ -115,7 +115,7 @@ function Remove-FslOldOstFile {
                     Write-Verbose 'Starting Get-FslVHD helper function'
                     Write-Log 'Starting Get-FslVHD  helper function'
                     try {
-                        $vhdDetail = Get-ChildItem -Path (Join-Path $path *.vhd*) -Recurse -ErrorAction Stop | Get-VHD -ErrorAction Stop
+                        $vhdDetail = Get-ChildItem -Path (Join-Path $path *.vhd*) -Recurse -ErrorAction Stop | Get-VHD -ErrorAction SilentlyContinue
                         Write-Log "Retrieved $($vhdDetail.count) vhds from specified path"
                     }
                     catch {
