@@ -31,63 +31,19 @@ function Remove-FslOST {
 
             $driveLetter = $mount | Get-Disk | Get-Partition | Select-Object -ExpandProperty AccessPaths | Select-Object -first 1
 
-            Write-Log  "Getting ost files from vhd(x)"
-            $ost = Get-ChildItem -Path (Join-Path $driveLetter *.ost) -Recurse
-            if ($null -eq $ost) {
-                Write-log -level Warn "Did not find any ost files in $vhd"
-                $ostDelNum = 0
+            Remove-FslMultiOst -Path (Join-Path $driveLetter ODFC)
+        
+            try {
+                Write-Log "Dismounting $vhd"
+                Dismount-VHD $vhd -ErrorAction Stop
+                Write-Log "Dismounted $vhd"
             }
-            else {
-
-                if ($count -gt 1) {
-
-                    $mailboxes = $ost.BaseName.trimend('(', ')', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0') | Group-Object | Select-Object -ExpandProperty Name
-
-                    foreach ($mailbox in $mailboxes) {
-                        $mailboxOst = $ost | Where-Object {$_.BaseName.StartsWith($mailbox)}
-
-                        #So this is weird if only one file is there it doesn't have a count property! Probably better to use measure-object
-                        try {
-                            $mailboxOst.count | Out-Null
-                            $count = $mailboxOst.count
-                        }
-                        catch {
-                            $count = 1
-                        }
-                        Write-Log  "Found $count ost files for $mailbox"
-
-                        if ($count -gt 1) {
-
-                            $ostDelNum = $count - 1
-                            Write-Log "Deleting $ostDelNum ost files"
-                            try {
-                                $latestOst = $mailboxOst | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
-                                $mailboxOst | Where-Object {$_.Name -ne $latestOst.Name} | Remove-Item -Force -ErrorAction Stop
-                            }
-                            catch {
-                                write-log -level Error "Failed to delete ost files in $vhd for $mailbox"
-                            }
-
-                            Remove-Variable -Name ost -ErrorAction SilentlyContinue
-                        }
-                        else {
-                            Write-Log "Only One ost file found for $mailbox. No action taken"
-                            $ostDelNum = 0
-                        }
-
-                    }
-                }
-                try {
-                    Write-Log "Dismounting $vhd"
-                    Dismount-VHD $vhd -ErrorAction Stop
-                    Write-Log "Dismounted $vhd"
-                }
-                catch {
-                    write-log -level Error "Failed to Dismount $vhd vhd will need to be manually dismounted"
-                }
-                #$totalFilesDeleted = $totalFilesDeleted + $ostDelNum
-
+            catch {
+                write-log -level Error "Failed to Dismount $vhd vhd will need to be manually dismounted"
             }
+            #$totalFilesDeleted = $totalFilesDeleted + $ostDelNum
+
+            
         }
 
     } #PROCESS
