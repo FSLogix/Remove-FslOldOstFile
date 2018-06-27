@@ -29,9 +29,23 @@ function Remove-FslOST {
                 break
             }
 
-            #If the VHD does not have a drive letter assigned, then the available drive
-            #will be \\?\Volume{*}, which will result in the script unable to function.
+            
             $driveLetter = $mount | Get-Disk | Get-Partition | Select-Object -ExpandProperty AccessPaths | Select-Object -first 1
+            
+            ## Usually this bug occurs when we are trying to mount a VHD, and the assigned Drive letter is already in use ##
+            if ($null -eq $driveLetter) {
+                try {
+                    $disk = Get-Disk | Where-Object {$_.Location -eq $VHDPath}
+                    $disk | set-disk -IsOffline $false
+                }
+                catch {
+                    Write-Error $Error[0]
+                }
+                $driveLetter = $disk | Get-Partition | Select-Object -ExpandProperty AccessPaths | Select-Object -first 1
+            }
+            
+            ## If the VHD does not have a drive letter assigned, then the available drive ##
+            ## will be \\?\Volume{*}, which will result in the script unable to function. ##
             if ($driveLetter -like "*\\?\Volume{*") {
                         
                 Write-Log "$driveLetter is not a valid drive letter"
@@ -41,8 +55,8 @@ function Remove-FslOST {
                     #Refresh mount
                             
                     try {
-                        #For some reason, If the first the driveLetter obtained was \\?\Volume
-                        #Then the new drive letter assigned will be null unless updated.
+                        ## For some reason, If the first the driveLetter obtained was \\?\Volume ##
+                        ## Then the new drive letter assigned will be null unless updated.       ##
                         Write-Log "DriverLetter is null, Re-Mounting"
                         Dismount-VHD $vhd -Passthru -ErrorAction Stop
                     }
