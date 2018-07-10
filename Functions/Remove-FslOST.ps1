@@ -35,7 +35,7 @@ function Remove-FslOST {
             ## Usually this bug occurs when we are trying to mount a VHD, and the assigned Drive letter is already in use ##
             if ($null -eq $driveLetter) {
                 try {
-                    $disk = Get-Disk | Where-Object {$_.Location -eq $VHDPath}
+                    $disk = Get-Disk | Where-Object {$_.Location -eq $vhd}
                     $disk | set-disk -IsOffline $false
                 }
                 catch {
