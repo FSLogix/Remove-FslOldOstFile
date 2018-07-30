@@ -20,9 +20,9 @@ function Remove-FslOldOstFile {
         Set-StrictMode -Version Latest
 
         #Region helper functions
+            #Write-Log
             #Get-FslVHD
             #Remove-FslOST
-            #Remove-FslMultiOst
         #endregion
 
         Write-Log -StartNew -Path $LogPath

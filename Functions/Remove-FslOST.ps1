@@ -10,6 +10,7 @@ function Remove-FslOST {
     BEGIN {
         Set-StrictMode -Version Latest
         Write-Log 'Starting Remove-FslOST helper function'
+        $totalFilesDeleted = 0
     } #BEGIN
     PROCESS {
         foreach ($vhd in $VHDPath) {

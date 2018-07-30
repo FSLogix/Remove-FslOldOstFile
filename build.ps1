@@ -2,8 +2,6 @@ function Get-WriteLog {
     # --- Set the uri for the latest release
     $URI = "https://api.github.com/repos/JimMoyle/YetAnotherWriteLog/releases/latest"
 
-    [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
-
     # --- Query the API to get the url of the zip
     $response = Invoke-RestMethod -Method Get -Uri $URI
     $zipUrl = $Response.zipball_url
