@@ -9,12 +9,12 @@ function Remove-FslOldOstFile {
         [Parameter(
             Position = 1,
             Mandatory = $true,
-            HelpMessage = 'The script will process VHDs with less free space than specified here')]
+            HelpMessage = 'The script will process VHDs with less free space in Bytes than specified here')]
         [int]$FreeSpace,
 
         [Parameter(
             Position = 2)]
-        [String]$LogPath = 'C:\Users\Jim\AppData\Local\Temp\FSlogixRemoveOST.log'
+        [String]$LogPath = $Env:Temp\FSlogixRemoveOST.log
     )
     BEGIN {
         Set-StrictMode -Version Latest
