@@ -14,7 +14,7 @@ function Remove-FslOldOstFile {
 
         [Parameter(
             Position = 2)]
-        [String]$LogPath = $Env:Temp\FSlogixRemoveOST.log
+        [String]$LogPath = (Join-path $Env:Temp FSlogixRemoveOST.log)
     )
     BEGIN {
         Set-StrictMode -Version Latest
