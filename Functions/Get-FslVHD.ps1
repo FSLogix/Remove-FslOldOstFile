@@ -14,13 +14,24 @@ function Get-FslVHD {
         Write-Log 'Starting Get-FslVHD  helper function'
         try {
             $vhdDetail = Get-ChildItem -Path (Join-Path $path *.vhd*) -Recurse -ErrorAction Stop | Get-VHD -ErrorAction Stop
-            Write-Log "Retrieved $($vhdDetail.count) vhds from specified path"
         }
         catch {
             Write-Error $Error[0]
             Write-Log 'Failed to get VHD details'
             Write-Log 'Stopping script'
             exit
+        }
+        
+        if($null -eq $vhdDetail) {
+            Write-Log "Retrieved 0 VHDs from specified Path."
+            Exit
+        }
+        
+        try {
+            Write-Log "Retrieved $($vhdDetail.count) vhds from specified path"
+        }
+        catch {
+            Write-Log "Retrived 1 vhd from specified path"
         }
 
         try {
