@@ -23,6 +23,7 @@ function Remove-FslOldOstFile {
             #Write-Log
             #Get-FslVHD
             #Remove-FslOST
+            #Remove-FslMultiOST
         #endregion
 
         Write-Log -StartNew -Path $LogPath
