@@ -8,9 +8,8 @@ function Remove-FslOldOstFile {
 
         [Parameter(
             Position = 1,
-            Mandatory = $true,
             HelpMessage = 'The script will process VHDs with less free space than specified here')]
-        [int]$FreeSpace,
+        [int]$FreeSpace = 0,
 
         [Parameter(
             Position = 2)]
