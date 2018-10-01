@@ -2,3 +2,4 @@
 Write-Log.ps1
 Add-FslTestVHDs.ps1
 start.ps1
+build.ps1

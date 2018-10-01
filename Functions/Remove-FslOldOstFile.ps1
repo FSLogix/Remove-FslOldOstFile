@@ -7,12 +7,6 @@ function Remove-FslOldOstFile {
         [String]$FolderPath,
 
         [Parameter(
-            Position = 1,
-            Mandatory = $true,
-            HelpMessage = 'The script will process VHDs with less free space than specified here')]
-        [int]$FreeSpace,
-
-        [Parameter(
             Position = 2)]
         [String]$LogPath = (Join-path $Env:Temp FSlogixRemoveOST.log)
     )
@@ -44,9 +38,10 @@ function Remove-FslOldOstFile {
         Write-Verbose 'Starting Remove-FslOldOstFile'
         Write-Log 'Starting Remove-FslOldOstFile'
         $vhdList = Get-FslVHD -Path $FolderPath -Verbose:$VerbosePreference
-        $vhdToProcess = $vhdList | Where-Object {$_.Attached -eq $false -and $_.FreeSpace -lt $FreeSpace}
+        $vhdToProcess = $vhdList | Where-Object { $_.Attached -eq $false }
         $result = $vhdToProcess.path | Remove-FslOST -Verbose:$VerbosePreference
-        Write-Log "Deleted $result ost files from $($vhdToProcess.count) VHD(X)s"
+        $count = ($vhdToProcess | Measure-Object).Count
+        Write-Log "Deleted $result ost files from $count VHD(X)s"
         Write-Verbose 'Finished Remove-FslOldOstFile'
         Write-Log 'Finished Remove-FslOldOstFile'
     } #PROCESS

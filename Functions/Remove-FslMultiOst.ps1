@@ -32,30 +32,24 @@ function Remove-FslMultiOst {
                 foreach ($mailbox in $mailboxes) {
                     $mailboxOst = $ost | Where-Object {$_.BaseName.StartsWith($mailbox)}
 
-                    #So this is weird if only one file is there it doesn't have a count property! Probably better to use measure-object
-                    try {
-                        $mailboxOst.count | Out-Null
-                        $count = $mailboxOst.count
-                    }
-                    catch {
-                        $count = 1
-                    }
-                    #Write-Log  "Found $count ost files for $mailbox"
+                    $count = $mailboxOst | Measure-Object
+
+                    Write-Log  "Found $count ost files for $mailbox"
 
                     if ($count -gt 1) {
 
                         $ostDelNum = $count - 1
-                        #Write-Log "Deleting $ostDelNum ost files"
+                        Write-Log "Deleting $ostDelNum ost files"
                         try {
                             $latestOst = $mailboxOst | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
                             $mailboxOst | Where-Object {$_.Name -ne $latestOst.Name} | Remove-Item -Force -ErrorAction Stop
                         }
                         catch {
-                            #write-log -level Error "Failed to delete ost files in $vhd for $mailbox"
+                            Write-log -level Error "Failed to delete ost files in $vhd for $mailbox"
                         }
                     }
                     else {
-                        #Write-Log "Only One ost file found for $mailbox. No action taken"
+                        Write-Log "Only One ost file found for $mailbox. No action taken"
                         $ostDelNum = 0
                     }
 

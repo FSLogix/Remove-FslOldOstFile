@@ -7,11 +7,6 @@ function Remove-FslOldOstFile {
         [String]$FolderPath,
 
         [Parameter(
-            Position = 1,
-            HelpMessage = 'The script will process VHDs with less free space than specified here')]
-        [int]$FreeSpace = 0,
-
-        [Parameter(
             Position = 2)]
         [String]$LogPath = (Join-path $Env:Temp FSlogixRemoveOST.log)
     )
@@ -113,8 +108,7 @@ function Get-FslVHD {
         Write-Verbose 'Starting Get-FslVHD helper function'
         Write-Log 'Starting Get-FslVHD  helper function'
         try {
-            $vhdDetail = Get-ChildItem -Path (Join-Path $path *.vhd*) -Recurse -ErrorAction Stop | Get-VHD -ErrorAction Stop
-            Write-Log "Retrieved $($vhdDetail.count) vhds from specified path"
+            $vhdDetail = Get-ChildItem -Path (Join-Path $path *.vhd*) -Recurse -ErrorAction Stop | Get-VHD -ErrorAction SilentlyContinue
         }
         catch {
             Write-Error $Error[0]
@@ -122,6 +116,15 @@ function Get-FslVHD {
             Write-Log 'Stopping script'
             exit
         }
+        
+        if($null -eq $vhdDetail) {
+            Write-Log "Retrieved 0 VHDs from specified Path."
+            Exit
+        }
+        
+        $count = ($vhdDetail | Measure-Object).Count
+        Write-Log "Retrieved $count vhds from specified path"
+
 
         try {
             $output = $vhdDetail | Select-Object -Property Path, VhdFormat, VhdType, FileSize, Size, Attached, @{n = 'FreeSpace'; e = {[math]::round((($_.Size - $_.FileSize) / [math]::pow( 1024, 3 )), 2)}}
@@ -439,338 +442,24 @@ function Write-Log {
                 foreach ($mailbox in $mailboxes) {
                     $mailboxOst = $ost | Where-Object {$_.BaseName.StartsWith($mailbox)}
 
-                    #So this is weird if only one file is there it doesn't have a count property! Probably better to use measure-object
-                    try {
-                        $mailboxOst.count | Out-Null
-                        $count = $mailboxOst.count
-                    }
-                    catch {
-                        $count = 1
-                    }
-                    #Write-Log  "Found $count ost files for $mailbox"
-function Write-Log {
-    [CmdletBinding(DefaultParametersetName = "LOG")]
-    Param (
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 0,
-            ParameterSetName = 'LOG')]
-        [ValidateNotNullOrEmpty()]
-        [string]$Message,
+                    $count = $mailboxOst | Measure-Object
 
-        [Parameter(Mandatory = $false,
-            Position = 1,
-            ParameterSetName = 'LOG')]
-        [ValidateSet("Error", "Warn", "Info")]
-        [string]$Level = "Info",
-
-        [Parameter(Mandatory = $false,
-            Position = 2)]
-        [string]$Path = "$env:temp\PowershellScript.log",
-
-        [Parameter(Mandatory = $false,
-            Position = 3,
-            ParameterSetName = 'STARTNEW')]
-        [switch]$StartNew,
-
-        [Parameter(Mandatory = $false,
-            Position = 4,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'EXCEPTION')]
-        [System.Management.Automation.ErrorRecord]$Exception
-
-    )
-
-    BEGIN {
-        Set-StrictMode -version Latest
-        $expandedParams = $null
-        $PSBoundParameters.GetEnumerator() | ForEach-Object { $expandedParams += ' -' + $_.key + ' '; $expandedParams += $_.value }
-        Write-Verbose "Starting: $($MyInvocation.MyCommand.Name)$expandedParams"
-    }
-    PROCESS {
-
-        switch ($PSCmdlet.ParameterSetName) {
-            EXCEPTION {
-                Write-Log -Level Error -Message $Exception.Exception.Message -Path $Path
-                break
-            }
-            STARTNEW {
-                Write-Verbose -Message "Deleting log file $Path if it exists"
-                Remove-Item $Path -Force -ErrorAction SilentlyContinue
-                Write-Verbose -Message 'Deleted log file if it exists'
-                Write-Log 'Starting Logfile' -Path $Path
-                break
-            }
-            LOG {
-                Write-Verbose 'Getting Date for our Log File'
-                $FormattedDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-                Write-Verbose 'Date is $FormattedDate'
-
-                switch ( $Level ) {
-                    'Error' { $LevelText = 'ERROR:  '; break }
-                    'Warn'  { $LevelText = 'WARNING:'; break }
-                    'Info'  { $LevelText = 'INFO:   '; break }
-                }
-
-                $logmessage = "$FormattedDate $LevelText $Message"
-                Write-Verbose $logmessage
-
-                $logmessage | Add-Content -Path $Path
-            }
-        }
-
-    }
-    END {
-        Write-Verbose "Finished: $($MyInvocation.Mycommand)"
-    }
-} # enable logging
+                    Write-Log  "Found $count ost files for $mailbox"
 
                     if ($count -gt 1) {
 
                         $ostDelNum = $count - 1
-                        #Write-Log "Deleting $ostDelNum ost files"
-function Write-Log {
-    [CmdletBinding(DefaultParametersetName = "LOG")]
-    Param (
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 0,
-            ParameterSetName = 'LOG')]
-        [ValidateNotNullOrEmpty()]
-        [string]$Message,
-
-        [Parameter(Mandatory = $false,
-            Position = 1,
-            ParameterSetName = 'LOG')]
-        [ValidateSet("Error", "Warn", "Info")]
-        [string]$Level = "Info",
-
-        [Parameter(Mandatory = $false,
-            Position = 2)]
-        [string]$Path = "$env:temp\PowershellScript.log",
-
-        [Parameter(Mandatory = $false,
-            Position = 3,
-            ParameterSetName = 'STARTNEW')]
-        [switch]$StartNew,
-
-        [Parameter(Mandatory = $false,
-            Position = 4,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'EXCEPTION')]
-        [System.Management.Automation.ErrorRecord]$Exception
-
-    )
-
-    BEGIN {
-        Set-StrictMode -version Latest
-        $expandedParams = $null
-        $PSBoundParameters.GetEnumerator() | ForEach-Object { $expandedParams += ' -' + $_.key + ' '; $expandedParams += $_.value }
-        Write-Verbose "Starting: $($MyInvocation.MyCommand.Name)$expandedParams"
-    }
-    PROCESS {
-
-        switch ($PSCmdlet.ParameterSetName) {
-            EXCEPTION {
-                Write-Log -Level Error -Message $Exception.Exception.Message -Path $Path
-                break
-            }
-            STARTNEW {
-                Write-Verbose -Message "Deleting log file $Path if it exists"
-                Remove-Item $Path -Force -ErrorAction SilentlyContinue
-                Write-Verbose -Message 'Deleted log file if it exists'
-                Write-Log 'Starting Logfile' -Path $Path
-                break
-            }
-            LOG {
-                Write-Verbose 'Getting Date for our Log File'
-                $FormattedDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-                Write-Verbose 'Date is $FormattedDate'
-
-                switch ( $Level ) {
-                    'Error' { $LevelText = 'ERROR:  '; break }
-                    'Warn'  { $LevelText = 'WARNING:'; break }
-                    'Info'  { $LevelText = 'INFO:   '; break }
-                }
-
-                $logmessage = "$FormattedDate $LevelText $Message"
-                Write-Verbose $logmessage
-
-                $logmessage | Add-Content -Path $Path
-            }
-        }
-
-    }
-    END {
-        Write-Verbose "Finished: $($MyInvocation.Mycommand)"
-    }
-} # enable logging
+                        Write-Log "Deleting $ostDelNum ost files"
                         try {
                             $latestOst = $mailboxOst | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
                             $mailboxOst | Where-Object {$_.Name -ne $latestOst.Name} | Remove-Item -Force -ErrorAction Stop
                         }
                         catch {
-                            #write-log -level Error "Failed to delete ost files in $vhd for $mailbox"
-function Write-Log {
-    [CmdletBinding(DefaultParametersetName = "LOG")]
-    Param (
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 0,
-            ParameterSetName = 'LOG')]
-        [ValidateNotNullOrEmpty()]
-        [string]$Message,
-
-        [Parameter(Mandatory = $false,
-            Position = 1,
-            ParameterSetName = 'LOG')]
-        [ValidateSet("Error", "Warn", "Info")]
-        [string]$Level = "Info",
-
-        [Parameter(Mandatory = $false,
-            Position = 2)]
-        [string]$Path = "$env:temp\PowershellScript.log",
-
-        [Parameter(Mandatory = $false,
-            Position = 3,
-            ParameterSetName = 'STARTNEW')]
-        [switch]$StartNew,
-
-        [Parameter(Mandatory = $false,
-            Position = 4,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'EXCEPTION')]
-        [System.Management.Automation.ErrorRecord]$Exception
-
-    )
-
-    BEGIN {
-        Set-StrictMode -version Latest
-        $expandedParams = $null
-        $PSBoundParameters.GetEnumerator() | ForEach-Object { $expandedParams += ' -' + $_.key + ' '; $expandedParams += $_.value }
-        Write-Verbose "Starting: $($MyInvocation.MyCommand.Name)$expandedParams"
-    }
-    PROCESS {
-
-        switch ($PSCmdlet.ParameterSetName) {
-            EXCEPTION {
-                Write-Log -Level Error -Message $Exception.Exception.Message -Path $Path
-                break
-            }
-            STARTNEW {
-                Write-Verbose -Message "Deleting log file $Path if it exists"
-                Remove-Item $Path -Force -ErrorAction SilentlyContinue
-                Write-Verbose -Message 'Deleted log file if it exists'
-                Write-Log 'Starting Logfile' -Path $Path
-                break
-            }
-            LOG {
-                Write-Verbose 'Getting Date for our Log File'
-                $FormattedDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-                Write-Verbose 'Date is $FormattedDate'
-
-                switch ( $Level ) {
-                    'Error' { $LevelText = 'ERROR:  '; break }
-                    'Warn'  { $LevelText = 'WARNING:'; break }
-                    'Info'  { $LevelText = 'INFO:   '; break }
-                }
-
-                $logmessage = "$FormattedDate $LevelText $Message"
-                Write-Verbose $logmessage
-
-                $logmessage | Add-Content -Path $Path
-            }
-        }
-
-    }
-    END {
-        Write-Verbose "Finished: $($MyInvocation.Mycommand)"
-    }
-} # enable logging
+                            Write-log -level Error "Failed to delete ost files in $vhd for $mailbox"
                         }
                     }
                     else {
-                        #Write-Log "Only One ost file found for $mailbox. No action taken"
-function Write-Log {
-    [CmdletBinding(DefaultParametersetName = "LOG")]
-    Param (
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 0,
-            ParameterSetName = 'LOG')]
-        [ValidateNotNullOrEmpty()]
-        [string]$Message,
-
-        [Parameter(Mandatory = $false,
-            Position = 1,
-            ParameterSetName = 'LOG')]
-        [ValidateSet("Error", "Warn", "Info")]
-        [string]$Level = "Info",
-
-        [Parameter(Mandatory = $false,
-            Position = 2)]
-        [string]$Path = "$env:temp\PowershellScript.log",
-
-        [Parameter(Mandatory = $false,
-            Position = 3,
-            ParameterSetName = 'STARTNEW')]
-        [switch]$StartNew,
-
-        [Parameter(Mandatory = $false,
-            Position = 4,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'EXCEPTION')]
-        [System.Management.Automation.ErrorRecord]$Exception
-
-    )
-
-    BEGIN {
-        Set-StrictMode -version Latest
-        $expandedParams = $null
-        $PSBoundParameters.GetEnumerator() | ForEach-Object { $expandedParams += ' -' + $_.key + ' '; $expandedParams += $_.value }
-        Write-Verbose "Starting: $($MyInvocation.MyCommand.Name)$expandedParams"
-    }
-    PROCESS {
-
-        switch ($PSCmdlet.ParameterSetName) {
-            EXCEPTION {
-                Write-Log -Level Error -Message $Exception.Exception.Message -Path $Path
-                break
-            }
-            STARTNEW {
-                Write-Verbose -Message "Deleting log file $Path if it exists"
-                Remove-Item $Path -Force -ErrorAction SilentlyContinue
-                Write-Verbose -Message 'Deleted log file if it exists'
-                Write-Log 'Starting Logfile' -Path $Path
-                break
-            }
-            LOG {
-                Write-Verbose 'Getting Date for our Log File'
-                $FormattedDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-                Write-Verbose 'Date is $FormattedDate'
-
-                switch ( $Level ) {
-                    'Error' { $LevelText = 'ERROR:  '; break }
-                    'Warn'  { $LevelText = 'WARNING:'; break }
-                    'Info'  { $LevelText = 'INFO:   '; break }
-                }
-
-                $logmessage = "$FormattedDate $LevelText $Message"
-                Write-Verbose $logmessage
-
-                $logmessage | Add-Content -Path $Path
-            }
-        }
-
-    }
-    END {
-        Write-Verbose "Finished: $($MyInvocation.Mycommand)"
-    }
-} # enable logging
+                        Write-Log "Only One ost file found for $mailbox. No action taken"
                         $ostDelNum = 0
                     }
 
@@ -800,9 +489,10 @@ function Write-Log {
         Write-Verbose 'Starting Remove-FslOldOstFile'
         Write-Log 'Starting Remove-FslOldOstFile'
         $vhdList = Get-FslVHD -Path $FolderPath -Verbose:$VerbosePreference
-        $vhdToProcess = $vhdList | Where-Object {$_.Attached -eq $false -and $_.FreeSpace -lt $FreeSpace}
+        $vhdToProcess = $vhdList | Where-Object { $_.Attached -eq $false }
         $result = $vhdToProcess.path | Remove-FslOST -Verbose:$VerbosePreference
-        Write-Log "Deleted $result ost files from $($vhdToProcess.count) VHD(X)s"
+        $count = ($vhdToProcess | Measure-Object).Count
+        Write-Log "Deleted $result ost files from $count VHD(X)s"
         Write-Verbose 'Finished Remove-FslOldOstFile'
         Write-Log 'Finished Remove-FslOldOstFile'
     } #PROCESS
